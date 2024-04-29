@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "ahab"
-version = "1.0.0"
+name = "ahab-lib"
+version = "1.0.1"
 description = "Python CLI library for interacting with ahab cloud API and Kubernetes systems."
 
 license = "Copyright 2024, Tuple, LLC. All rights reserved."
@@ -39,3 +39,8 @@ cleo = "^2.1.0"
 # Entrypoints and scripts
 [tool.poetry.scripts]
 ahab = "ahab.cli:cli"
+
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
