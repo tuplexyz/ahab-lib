@@ -4,6 +4,15 @@ Library for interacting with _ahab_ cloud API and Kubernetes systems
 <h3 align="right">Tuple, LLC</h3>
 <a href="https://tuple.xyz/solutions/ahab/" target="_blank"><h4 align="right">tuple.xyz/solutions/ahab/</h4></a>
 
+## Installation
+```bash
+## Python library from PyPI using pip
+pip install ahab
+
+## CLI using pipx
+pipx install git+https://github.com/tuplexyz/ahab-lib.git
+```
+
 ## Environment Variables
 This library can use environment variables to avoid passing sensitive information in code.
 The following environment variables are used by this library:
