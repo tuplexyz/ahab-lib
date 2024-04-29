@@ -19,20 +19,23 @@ keywords = ["ahab", "bioinformatics", "genomics",
             "machine learning", "ai", "Kubernetes",
             "cloud", "pipelines"]
 
-[tool.poetry.dependencies]
-# Compatible Python versions
-python = ">=3.7,<4.0"
+# Classifiers
+classifiers = [
+    "Programming Language :: Python",
+    "Topic :: Scientific/Engineering :: Bio-Informatics"
+]
+
+packages = [
+ { include = "ahab" }
+]
+
+
 # Dependencies
+[tool.poetry.dependencies]
+python = ">=3.7,<4.0"
 requests = "^2.28"
 cleo = "^2.1.0"
 
-packages = [
-    { include = "ahab/**/*.py" }
-]
-
-# Entrypoints and scripts are easily expressed
+# Entrypoints and scripts
 [tool.poetry.scripts]
-ahab = "ahab.cli:main"
-get_job = "ahab.job:get_job"
-submit_job = "ahab.job:submit_job"
-update_job = "ahab.job:update_job"
+ahab = "ahab.cli:cli"
