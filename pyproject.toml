@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "ahab"
+version = "1.0.0"
+description = "Python CLI library for interacting with ahab cloud API and Kubernetes systems."
+
+license = "Copyright 2024, Tuple, LLC. All rights reserved."
+
+authors = ["Colby T. Ford <colby@tuple.xyz>"]
+
+repository = "https://github.com/tuplexyz/ahab-lib"
+homepage = "https://tuple.xyz/solutions/ahab"
+
+# README file(s) are used as the package description
+readme = ["README.md", "LICENSE"]
+
+# Keywords (translated to tags on the package index)
+keywords = ["ahab", "bioinformatics", "genomics",
+            "computational biology", "data science",
+            "machine learning", "ai", "Kubernetes",
+            "cloud", "pipelines"]
+
+[tool.poetry.dependencies]
+# Compatible Python versions
+python = ">=3.7,<4.0"
+# Dependencies
+requests = "^2.28"
+cleo = "^2.1.0"
+
+packages = [
+    { include = "ahab/**/*.py" }
+]
+
+# Entrypoints and scripts are easily expressed
+[tool.poetry.scripts]
+ahab = "ahab.cli:main"
+get_job = "ahab.job:get_job"
+submit_job = "ahab.job:submit_job"
+update_job = "ahab.job:update_job"
