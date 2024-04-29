@@ -1,7 +1,7 @@
 ## A Python package and CLI to integrate with the `ahab` API
 
 import os, json
-from job import get_job, submit_job, update_job
+from ahab.job import get_job, submit_job, update_job
 from cleo.commands.command import Command
 from cleo.helpers import argument, option
 
@@ -22,13 +22,13 @@ class JobCommand(Command):
         option(
             "body",
             "b",
-            description="The body of the job to submit/update in JSON format",
+            description="The body of the job to submit/update (as a <comment>JSON</comment> string)",
             flag=False
         ),
         option(
             "job_type",
             "j",
-            description="The job type from which to query",
+            description="The job type from which to query a job with a `PENDING` status",
             flag=False
         ),
         option(
@@ -46,13 +46,13 @@ class JobCommand(Command):
         option(
             "api_base_url",
             "u",
-            description = "The base URL of the `ahab` Function API (e.g., https://func-ahab-dev-eastus-001.azurewebsites.net/). If not provided, the value of the `AHAB_API_URL` environment variable will be used.",
+            description = "The base URL of the <fg=magenta>ahab</> Function API (e.g., <comment>https://func-ahab-dev-eastus-001.azurewebsites.net</comment>).\nIf not provided, the value of the <comment>AHAB_API_URL</comment> environment variable will be used.",
             flag=False
         ),
         option(
             "api_key",
             "k",
-            description = "The key of the `ahab` Function API (e.g., DmXPlzmZ3Pq2chtVV_gggzVKh2uAIlFIGgcr9nkl29U0AzFuToWgIw==). If not provided, the value of the `AHAB_API_KEY` environment variable will be used.",
+            description = "The key of the <fg=magenta>ahab</> Function API (e.g., <comment>DmXPlzmZ3Pq2chtVV_gggzVKh2uAIlFIGgcr9nkl29U0AzFuToWgIw==</comment>).\nIf not provided, the value of the <comment>AHAB_API_KEY</comment> environment variable will be used.",
             flag=False
         )
     ]
