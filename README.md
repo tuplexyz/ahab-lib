@@ -1,8 +1,7 @@
 # ahab - Library 🦑
 Library for interacting with the _ahab_ cloud API and Kubernetes system
 
-<h3 align="right">Tuple, LLC</h3>
-<a href="https://tuple.xyz/solutions/ahab/" target="_blank"><h4 align="right">tuple.xyz/solutions/ahab/</h4></a>
+<h3 align="right">Tuple, LLC | <a href="https://tuple.xyz/solutions/ahab/" target="_blank">tuple.xyz/solutions/ahab/</h3></a>
 
 ## Installation
 ```bash
