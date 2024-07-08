@@ -29,24 +29,24 @@ export AHAB_API_KEY=$(az functionapp keys list --name func-ahab-dev-eastus-001 -
 set AHAB_API_URL=https://$(az functionapp show --name func-ahab-dev-eastus-001 --resource-group rg-ahab-dev-eastus-001 --query defaultHostName -o tsv)
 set AHAB_API_KEY=$(az functionapp keys list --name func-ahab-dev-eastus-001 --resource-group rg-ahab-dev-eastus-001 --query functionKeys -o tsv)
 ```
-...changing the `--name` and `--resource-group` values to the names of your Function App and Resource Group, respectively.
+...changing the `--name` and `--resource-group` values to the names of your _ahab_ instance's Function App and Resource Group, respectively.
 
 
 ## CLI Usage
 
 ### Submit Job
 ```bash
-python3 ahab.py job submit --body='{"job_type": "rnaseq", "metadata": {"project": "project_001", "sample": "sample_001"}, "inputs": {"references": "/mnt/datalake/reference/rnaseq_1", "fastq_1": "/mnt/datalake/project_001/sample_001/rnaseq/file_1.fastq.gz", "fastq_2": "/mnt/datalake/project_001/sample_001/rnaseq/file_2.fastq.gz"}}'
+ahab job submit --body='{"job_type": "rnaseq", "metadata": {"project": "project_001", "sample": "sample_001"}, "inputs": {"references": "/mnt/datalake/reference/rnaseq_1", "fastq_1": "/mnt/datalake/project_001/sample_001/rnaseq/file_1.fastq.gz", "fastq_2": "/mnt/datalake/project_001/sample_001/rnaseq/file_2.fastq.gz"}}'
 ```
 
 ### Get Job
 ```bash
-python3 ahab.py job get --job_type=rnaseq
+ahab job get --job_type=rnaseq
 ```
 
 ### Update Job
 ```bash
-python3 ahab.py job update --id=fb273f3b-9665-4f9d-978c-9f6cb9f1cc19 --status=COMPLETE --body='{"outputs": {"bam": "/mnt/datalake/project_001/sample_001/rnaseq/file_1.bam", "bai": "/mnt/datalake/project_001/sample_001/rnaseq/file_1.bam.bai"}}'
+ahab job update --id=fb273f3b-9665-4f9d-978c-9f6cb9f1cc19 --status=COMPLETE --body='{"outputs": {"bam": "/mnt/datalake/project_001/sample_001/rnaseq/file_1.bam", "bai": "/mnt/datalake/project_001/sample_001/rnaseq/file_1.bam.bai"}}'
 ```
 
 ## Python Usage
