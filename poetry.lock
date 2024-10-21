@@ -3,7 +3,7 @@
 [[package]]
 name = "certifi"
 version = "2024.7.4"
-description = "Python package for providing Mozilla's CA Bundle."
+description = "Python package for interfacing with the ahab system."
 optional = false
 python-versions = ">=3.6"
 files = [
