@@ -13,6 +13,7 @@ pipx install git+https://github.com/tuplexyz/ahab-lib.git
 ```
 
 ## Environment Variables
+
 This library can use environment variables to avoid passing sensitive information in code.
 The following environment variables are used by this library:
 - `AHAB_API_URL` - The URL for the _ahab_ cloud API
