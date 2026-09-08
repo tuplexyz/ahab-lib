@@ -3,7 +3,7 @@ name = "ahab-lib"
 version = "1.0.1"
 description = "Python CLI library for interacting with ahab cloud API and Kubernetes systems."
 
-license = "Copyright 2024, Tuple, LLC. All rights reserved."
+license = "Copyright 2026, Tuple, LLC. All rights reserved."
 
 authors = ["Colby T. Ford <colby@tuple.xyz>"]
 
