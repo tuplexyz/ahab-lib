@@ -3,6 +3,9 @@ Library for interacting with the _ahab_ cloud API and Kubernetes system
 
 <h3 align="right">Tuple, LLC | <a href="https://tuple.xyz/solutions/ahab/" target="_blank">tuple.xyz/solutions/ahab/</h3></a>
 
+> [!IMPORTANT]
+> You must already have an _ahab_ deployment in your Azure Tenant. If you want to learn how to get _ahab_, contact us: contact@tuple.xyz
+
 ## Installation
 ```bash
 ## Python library from PyPI using pip
