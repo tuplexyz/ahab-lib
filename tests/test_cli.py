@@ -10,6 +10,15 @@ from ahab.cli import main
 
 
 class CliTests(unittest.TestCase):
+    def test_cli_reports_package_version(self):
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            with self.assertRaises(SystemExit) as raised:
+                main(["--version"])
+
+        self.assertEqual(raised.exception.code, 0)
+        self.assertEqual(output.getvalue().strip(), "ahab 1.1.0")
+
     def test_job_list_calls_non_claiming_operation(self):
         output = io.StringIO()
         with patch("ahab.cli.job.list_jobs", return_value={"jobs": []}) as list_jobs:

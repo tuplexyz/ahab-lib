@@ -1,3 +1,5 @@
+__version__ = "1.1.0"
+
 from ahab import job
 from ahab.job import (
     AhabApiError,
@@ -14,6 +16,7 @@ from ahab.job import (
 
 __all__ = [
     "AhabApiError",
+    "__version__",
     "build_job_body",
     "create_job_template",
     "get_job",

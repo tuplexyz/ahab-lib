@@ -12,6 +12,18 @@ pip install ahab-lib
 pipx install git+https://github.com/tuplexyz/ahab-lib.git
 ```
 
+After pulling changes into an existing local checkout, reinstall the package so
+the `ahab` executable uses the checkout instead of an older installed copy:
+
+```bash
+python -m pip install --upgrade --force-reinstall .
+ahab --version
+```
+
+The CLI documented below is available in `ahab-lib 1.1.0` and later. On
+Windows, `where.exe ahab` shows which executable PowerShell is running if an
+older installation remains on `PATH`.
+
 ## Environment Variables
 
 This library can use environment variables to avoid passing sensitive information in code.
