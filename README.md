@@ -64,13 +64,13 @@ ahab job submit \
   --input fastq_1=/mnt/datalake/project_001/sample_001/rnaseq/file_1.fastq.gz \
   --input fastq_2=/mnt/datalake/project_001/sample_001/rnaseq/file_2.fastq.gz
 
-# Complete JSON can instead be provided inline or read from a file.
+## Complete JSON can instead be provided inline or read from a file.
 ahab job submit --body='{"job_type":"rnaseq","metadata":{"sample":"sample_001"},"inputs":{"fastq_1":"/mnt/data/file_1.fastq.gz"}}'
 ahab job submit --file=job.json
 
-# List every job without claiming or changing its status
+## List every job without claiming or changing its status
 ahab job list
-# Claim a pending job for a worker (the API changes it to STARTED)
+## Claim a pending job for a worker (the API changes it to STARTED)
 ahab job get --job_type=rnaseq
 ahab job update --id=fb273f3b-9665-4f9d-978c-9f6cb9f1cc19 --status=COMPLETE --body='{"outputs": {"bam": "/mnt/datalake/project_001/sample_001/rnaseq/file_1.bam", "bai": "/mnt/datalake/project_001/sample_001/rnaseq/file_1.bam.bai"}}'
 ```
@@ -102,9 +102,9 @@ response = submit_job(
     },
 )
 
-# {'message': 'Job created successfully.', 'id': 'fb273f3b-9665-4f9d-978c-9f6cb9f1cc19', 'job_type': 'rnaseq'}
+## {'message': 'Job created successfully.', 'id': 'fb273f3b-9665-4f9d-978c-9f6cb9f1cc19', 'job_type': 'rnaseq'}
 
-# Complete requests can instead be supplied as a dictionary or JSON file.
+## Complete requests can instead be supplied as a dictionary or JSON file.
 response = submit_job(body={
     "job_type": "rnaseq",
     "metadata": {"sample": "sample_001"},
@@ -112,10 +112,10 @@ response = submit_job(body={
 })
 response = submit_job(json_file="job.json")
 
-# List all jobs without changing status.
+## List all jobs without changing status.
 jobs = list_jobs()
 
-# Worker claim: returns one pending job and changes its status to STARTED.
+## Worker claim: returns one pending job and changes its status to STARTED.
 job = get_job(job_type="rnaseq")
 
 update_job(
@@ -124,8 +124,8 @@ update_job(
     body={"outputs": {"bam": "/mnt/results/sample.bam"}},
 )
 
-# Explicit credentials are optional; AHAB_API_URL and AHAB_API_KEY are used by default.
-# Functions also accept api_base_url="..." and api_key="...".
+## Explicit credentials are optional; AHAB_API_URL and AHAB_API_KEY are used by default.
+## Functions also accept api_base_url="..." and api_key="...".
 ```
 
 ### Manage job templates
