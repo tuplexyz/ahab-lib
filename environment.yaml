@@ -1,0 +1,10 @@
+name: ahab-lib
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.7
+  - pip
+  - pip:
+      - requests>=2.28,<3.0
+      - cleo>=2.1.0,<3.0.0
+      - -e .
