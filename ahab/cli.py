@@ -5,7 +5,7 @@ import argparse
 import json
 import sys
 
-from ahab import job
+from ahab import __version__, job
 
 
 def _json_body(value):
@@ -53,6 +53,11 @@ def _add_connection_options(parser):
 
 def _build_parser():
     parser = argparse.ArgumentParser(prog="ahab", description="Ahab API client")
+    parser.add_argument(
+        "--version",
+        action="version",
+        version="%(prog)s {}".format(__version__),
+    )
     commands = parser.add_subparsers(dest="resource", required=True)
 
     job_parser = commands.add_parser("job", help="Manage jobs")
