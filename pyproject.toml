@@ -38,7 +38,7 @@ cleo = "^2.1.0"
 
 # Entrypoints and scripts
 [tool.poetry.scripts]
-ahab = "ahab.cli:cli"
+ahab = "ahab.cli:main"
 
 
 [build-system]

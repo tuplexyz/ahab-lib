@@ -35,34 +35,34 @@ set AHAB_API_KEY=$(az functionapp keys list --name func-ahab-dev-eastus-001 --re
 
 ## CLI Usage
 
-### Submit Job
+The CLI is installed with the package and reads `AHAB_API_URL` and
+`AHAB_API_KEY` from the environment by default. Per-command `--api-base-url`
+and `--api-key` options can override them.
+
+### Submit, list, claim, and update jobs
 ```bash
 ahab job submit --body='{"job_type": "rnaseq", "metadata": {"project": "project_001", "sample": "sample_001"}, "inputs": {"references": "/mnt/datalake/reference/rnaseq_1", "fastq_1": "/mnt/datalake/project_001/sample_001/rnaseq/file_1.fastq.gz", "fastq_2": "/mnt/datalake/project_001/sample_001/rnaseq/file_2.fastq.gz"}}'
-```
-
-### Get Job
-```bash
+# List every job without claiming or changing its status
+ahab job list
+# Claim a pending job for a worker (the API changes it to STARTED)
 ahab job get --job_type=rnaseq
+ahab job update --id=fb273f3b-9665-4f9d-978c-9f6cb9f1cc19 --status=COMPLETE --body='{"outputs": {"bam": "/mnt/datalake/project_001/sample_001/rnaseq/file_1.bam", "bai": "/mnt/datalake/project_001/sample_001/rnaseq/file_1.bam.bai"}}'
 ```
 
-### Update Job
+### Manage job templates
 ```bash
-ahab job update --id=fb273f3b-9665-4f9d-978c-9f6cb9f1cc19 --status=COMPLETE --body='{"outputs": {"bam": "/mnt/datalake/project_001/sample_001/rnaseq/file_1.bam", "bai": "/mnt/datalake/project_001/sample_001/rnaseq/file_1.bam.bai"}}'
+ahab job-template list
+ahab job-template list --name=rnaseq
+ahab job-template create --body='{"name":"rnaseq","pool_name":"rnaseq","image":"example/worker:latest","max_nodes":1,"vm_size":"Standard_D4s_v5","memory":"8Gi","cpu":2,"command":["/bin/bash"],"args":["run.sh"]}'
+ahab job-template update --body='{"name":"rnaseq","image":"example/worker:v2"}'
 ```
 
 ## Python Usage
 
-### Load in the library and get API information
+### Submit, list, and update jobs
 ```python
-from ahab.job import get_job, submit_job, update_job
-import os, json
+from ahab import list_jobs, get_job, submit_job, update_job
 
-api_base_url = os.environ.get('AHAB_API_URL', '')
-api_key = os.environ.get('AHAB_API_KEY', '')
-```
-
-### Submit Job
-```python
 body = {
     "job_type": "rnaseq",
     "metadata": {
@@ -76,30 +76,42 @@ body = {
     }
 }
 
-response = submit_job(body = body, api_base_url = api_base_url, api_key = api_key)
+response = submit_job(body)
 
 # {'message': 'Job created successfully.', 'id': 'fb273f3b-9665-4f9d-978c-9f6cb9f1cc19', 'job_type': 'rnaseq'}
 
+# List all jobs without changing status.
+jobs = list_jobs()
+
+# Worker claim: returns one pending job and changes its status to STARTED.
+job = get_job(job_type="rnaseq")
+
+update_job(
+    id=job["id"],
+    status="COMPLETE",
+    body={"outputs": {"bam": "/mnt/results/sample.bam"}},
+)
+
+# Explicit credentials are optional; AHAB_API_URL and AHAB_API_KEY are used by default.
+# Functions also accept api_base_url="..." and api_key="...".
 ```
 
-### Get Job
+### Manage job templates
 ```python
-job = get_job(job_type='rnaseq', api_base_url = api_base_url, api_key = api_key)
+from ahab import list_job_templates, get_job_template, create_job_template, update_job_template
 
-# {'id': 'fb273f3b-9665-4f9d-978c-9f6cb9f1cc19', 'job_type': 'rnaseq', 'current_status': 'STARTED', 'status_history': {'2024-04-29T17:10:18.552843': 'PENDING', '2024-04-29T17:11:15.582001': 'STARTED'}, 'metadata': {'project': 'project_001', 'sample': 'sample_001'}, 'inputs': {'references': '/mnt/datalake/reference/rnaseq_1', 'fastq_1': '/mnt/datalake/project_001/sample_001/rnaseq/file_1.fastq.gz', 'fastq_2': '/mnt/datalake/project_001/sample_001/rnaseq/file_2.fastq.gz'}}
-
-```
-
-### Update Job
-```python
-body = {
-    "outputs": {
-        "bam": "/mnt/datalake/project_001/sample_001/rnaseq/file_1.bam",
-        "bai": "/mnt/datalake/project_001/sample_001/rnaseq/file_1.bam.bai"
-    }
-}
-
-response = update_job(id = 'fb273f3b-9665-4f9d-978c-9f6cb9f1cc19', status = "COMPLETE", body = body, api_base_url = api_base_url, api_key = api_key)
-
-# {'message': 'Job updated successfully.', 'id': 'fb273f3b-9665-4f9d-978c-9f6cb9f1cc19', 'status': 'COMPLETE'}
+templates = list_job_templates()
+rnaseq = get_job_template("rnaseq")
+create_job_template({
+    "name": "variant-calling",
+    "pool_name": "rnaseq",
+    "image": "example/worker:latest",
+    "max_nodes": 1,
+    "vm_size": "Standard_D4s_v5",
+    "memory": "8Gi",
+    "cpu": 2,
+    "command": ["/bin/bash"],
+    "args": ["run.sh"],
+})
+update_job_template({"name": "rnaseq", "image": "example/worker:v2"})
 ```
