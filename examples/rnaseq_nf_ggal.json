@@ -1,0 +1,12 @@
+{
+        "job_type": "rnaseq",
+        "metadata": {
+            "project": "nextflow-samples",
+            "sample": "ggal"
+        },
+        "inputs": {
+            "transcriptome": "/mnt/datalake/references/rnaseq-nf/ggal_1_48850000_49020000.Ggal71.500bpflank.fa",
+            "reads": "/mnt/datalake/samples/nf_ggal/ggal_liver_{1,2}.fq",
+            "outdir": "/mnt/datalake/samples/nf_ggal/liver_results_12345"
+        }
+}

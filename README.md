@@ -12,6 +12,18 @@ pip install ahab-lib
 pipx install git+https://github.com/tuplexyz/ahab-lib.git
 ```
 
+After pulling changes into an existing local checkout, reinstall the package so
+the `ahab` executable uses the checkout instead of an older installed copy:
+
+```bash
+python -m pip install --upgrade --force-reinstall .
+ahab --version
+```
+
+The CLI documented below is available in `ahab-lib 1.1.0` and later. On
+Windows, `where.exe ahab` shows which executable PowerShell is running if an
+older installation remains on `PATH`.
+
 ## Environment Variables
 
 This library can use environment variables to avoid passing sensitive information in code.
@@ -35,71 +47,103 @@ set AHAB_API_KEY=$(az functionapp keys list --name func-ahab-dev-eastus-001 --re
 
 ## CLI Usage
 
-### Submit Job
-```bash
-ahab job submit --body='{"job_type": "rnaseq", "metadata": {"project": "project_001", "sample": "sample_001"}, "inputs": {"references": "/mnt/datalake/reference/rnaseq_1", "fastq_1": "/mnt/datalake/project_001/sample_001/rnaseq/file_1.fastq.gz", "fastq_2": "/mnt/datalake/project_001/sample_001/rnaseq/file_2.fastq.gz"}}'
-```
+The CLI is installed with the package and reads `AHAB_API_URL` and
+`AHAB_API_KEY` from the environment by default. Per-command `--api-base-url`
+and `--api-key` options can override them.
 
-### Get Job
+### Submit, list, claim, and update jobs
+Choose one submission mode: structured flags, an inline JSON body, or a JSON
+file.
+
 ```bash
+ahab job submit \
+  --job-type rnaseq \
+  --metadata project=project_001 \
+  --metadata sample=sample_001 \
+  --input references=/mnt/datalake/reference/rnaseq_1 \
+  --input fastq_1=/mnt/datalake/project_001/sample_001/rnaseq/file_1.fastq.gz \
+  --input fastq_2=/mnt/datalake/project_001/sample_001/rnaseq/file_2.fastq.gz
+
+## Complete JSON can instead be provided inline or read from a file.
+ahab job submit --body='{"job_type":"rnaseq","metadata":{"sample":"sample_001"},"inputs":{"fastq_1":"/mnt/data/file_1.fastq.gz"}}'
+ahab job submit --file=job.json
+
+## List every job without claiming or changing its status
+ahab job list
+## Claim a pending job for a worker (the API changes it to STARTED)
 ahab job get --job_type=rnaseq
+ahab job update --id=fb273f3b-9665-4f9d-978c-9f6cb9f1cc19 --status=COMPLETE --body='{"outputs": {"bam": "/mnt/datalake/project_001/sample_001/rnaseq/file_1.bam", "bai": "/mnt/datalake/project_001/sample_001/rnaseq/file_1.bam.bai"}}'
 ```
 
-### Update Job
+### Manage job templates
 ```bash
-ahab job update --id=fb273f3b-9665-4f9d-978c-9f6cb9f1cc19 --status=COMPLETE --body='{"outputs": {"bam": "/mnt/datalake/project_001/sample_001/rnaseq/file_1.bam", "bai": "/mnt/datalake/project_001/sample_001/rnaseq/file_1.bam.bai"}}'
+ahab job-template list
+ahab job-template list --name=rnaseq
+ahab job-template create --body='{"name":"rnaseq","pool_name":"rnaseq","image":"example/worker:latest","max_nodes":1,"vm_size":"Standard_D4s_v5","memory":"8Gi","cpu":2,"command":["/bin/bash"],"args":["run.sh"]}'
+ahab job-template update --body='{"name":"rnaseq","image":"example/worker:v2"}'
 ```
 
 ## Python Usage
 
-### Load in the library and get API information
+### Submit, list, and update jobs
 ```python
-from ahab.job import get_job, submit_job, update_job
-import os, json
+from ahab import list_jobs, get_job, submit_job, update_job
 
-api_base_url = os.environ.get('AHAB_API_URL', '')
-api_key = os.environ.get('AHAB_API_KEY', '')
-```
-
-### Submit Job
-```python
-body = {
-    "job_type": "rnaseq",
-    "metadata": {
+response = submit_job(
+    job_type="rnaseq",
+    metadata={
         "project": "project_001",
-        "sample": "sample_001"
+        "sample": "sample_001",
     },
-    "inputs": {
+    inputs={
         "references": "/mnt/datalake/reference/rnaseq_1",
         "fastq_1": "/mnt/datalake/project_001/sample_001/rnaseq/file_1.fastq.gz",
-        "fastq_2": "/mnt/datalake/project_001/sample_001/rnaseq/file_2.fastq.gz"
-    }
-}
+        "fastq_2": "/mnt/datalake/project_001/sample_001/rnaseq/file_2.fastq.gz",
+    },
+)
 
-response = submit_job(body = body, api_base_url = api_base_url, api_key = api_key)
+## {'message': 'Job created successfully.', 'id': 'fb273f3b-9665-4f9d-978c-9f6cb9f1cc19', 'job_type': 'rnaseq'}
 
-# {'message': 'Job created successfully.', 'id': 'fb273f3b-9665-4f9d-978c-9f6cb9f1cc19', 'job_type': 'rnaseq'}
+## Complete requests can instead be supplied as a dictionary or JSON file.
+response = submit_job(body={
+    "job_type": "rnaseq",
+    "metadata": {"sample": "sample_001"},
+    "inputs": {"fastq_1": "/mnt/data/file_1.fastq.gz"},
+})
+response = submit_job(json_file="job.json")
 
+## List all jobs without changing status.
+jobs = list_jobs()
+
+## Worker claim: returns one pending job and changes its status to STARTED.
+job = get_job(job_type="rnaseq")
+
+update_job(
+    id=job["id"],
+    status="COMPLETE",
+    body={"outputs": {"bam": "/mnt/results/sample.bam"}},
+)
+
+## Explicit credentials are optional; AHAB_API_URL and AHAB_API_KEY are used by default.
+## Functions also accept api_base_url="..." and api_key="...".
 ```
 
-### Get Job
+### Manage job templates
 ```python
-job = get_job(job_type='rnaseq', api_base_url = api_base_url, api_key = api_key)
+from ahab import list_job_templates, get_job_template, create_job_template, update_job_template
 
-# {'id': 'fb273f3b-9665-4f9d-978c-9f6cb9f1cc19', 'job_type': 'rnaseq', 'current_status': 'STARTED', 'status_history': {'2024-04-29T17:10:18.552843': 'PENDING', '2024-04-29T17:11:15.582001': 'STARTED'}, 'metadata': {'project': 'project_001', 'sample': 'sample_001'}, 'inputs': {'references': '/mnt/datalake/reference/rnaseq_1', 'fastq_1': '/mnt/datalake/project_001/sample_001/rnaseq/file_1.fastq.gz', 'fastq_2': '/mnt/datalake/project_001/sample_001/rnaseq/file_2.fastq.gz'}}
-
-```
-
-### Update Job
-```python
-body = {
-    "outputs": {
-        "bam": "/mnt/datalake/project_001/sample_001/rnaseq/file_1.bam",
-        "bai": "/mnt/datalake/project_001/sample_001/rnaseq/file_1.bam.bai"
-    }
-}
-
-response = update_job(id = 'fb273f3b-9665-4f9d-978c-9f6cb9f1cc19', status = "COMPLETE", body = body, api_base_url = api_base_url, api_key = api_key)
-
-# {'message': 'Job updated successfully.', 'id': 'fb273f3b-9665-4f9d-978c-9f6cb9f1cc19', 'status': 'COMPLETE'}
+templates = list_job_templates()
+rnaseq = get_job_template("rnaseq")
+create_job_template({
+    "name": "variant-calling",
+    "pool_name": "rnaseq",
+    "image": "example/worker:latest",
+    "max_nodes": 1,
+    "vm_size": "Standard_D4s_v5",
+    "memory": "8Gi",
+    "cpu": 2,
+    "command": ["/bin/bash"],
+    "args": ["run.sh"],
+})
+update_job_template({"name": "rnaseq", "image": "example/worker:v2"})
 ```
