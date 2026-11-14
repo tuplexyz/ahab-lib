@@ -18,6 +18,27 @@ def _json_body(value):
     return body
 
 
+def _key_value(value):
+    key, separator, item_value = value.partition("=")
+    if not separator or not key:
+        raise argparse.ArgumentTypeError("must use KEY=VALUE format")
+    return key, item_value
+
+
+def _key_values(values, option):
+    if not values:
+        return None
+
+    result = {}
+    for key, value in values:
+        if key in result:
+            raise ValueError(
+                "{} key '{}' was provided more than once.".format(option, key)
+            )
+        result[key] = value
+    return result
+
+
 def _add_connection_options(parser):
     parser.add_argument(
         "--api-base-url",
@@ -37,7 +58,26 @@ def _build_parser():
     job_parser = commands.add_parser("job", help="Manage jobs")
     job_actions = job_parser.add_subparsers(dest="action", required=True)
     submit = job_actions.add_parser("submit", help="Create a job")
-    submit.add_argument("--body", required=True, type=_json_body)
+    submit.add_argument("--job-type", "--job_type")
+    submit.add_argument(
+        "--metadata",
+        action="append",
+        default=[],
+        type=_key_value,
+        metavar="KEY=VALUE",
+        help="Metadata field; may be repeated",
+    )
+    submit.add_argument(
+        "--input",
+        dest="inputs",
+        action="append",
+        default=[],
+        type=_key_value,
+        metavar="KEY=VALUE",
+        help="Input field; may be repeated",
+    )
+    submit.add_argument("--body", type=_json_body, help="Complete job JSON object")
+    submit.add_argument("--file", dest="json_file", help="Path to a job JSON file")
     listing = job_actions.add_parser("list", help="List jobs without claiming one")
     get = job_actions.add_parser("get", help="List jobs or claim a pending job")
     for action_parser in (listing, get):
@@ -70,7 +110,15 @@ def _run(args):
     options = (args.api_base_url or "", args.api_key or "")
     if args.resource == "job":
         if args.action == "submit":
-            return job.submit_job(args.body, *options)
+            return job.submit_job(
+                body=args.body,
+                api_base_url=options[0],
+                api_key=options[1],
+                job_type=args.job_type,
+                metadata=_key_values(args.metadata, "--metadata"),
+                inputs=_key_values(args.inputs, "--input"),
+                json_file=args.json_file,
+            )
         if args.action in ("list", "get"):
             if args.action == "list":
                 return job.list_jobs(*options)

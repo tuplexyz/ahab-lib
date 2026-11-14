@@ -1,8 +1,12 @@
+import json
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import Mock, patch
 
 from ahab import (
     AhabApiError,
+    build_job_body,
     create_job_template,
     get_job,
     get_job_template,
@@ -61,6 +65,49 @@ class JobApiTests(unittest.TestCase):
             {"id": "job-1", "status": "COMPLETE"},
         )
         self.assertEqual(request.call_args.kwargs["json"], update_body)
+
+    @patch("ahab.job.requests.request")
+    def test_submit_job_accepts_structured_fields(self, request):
+        request.return_value = self.response
+        submit_job(
+            api_base_url="https://example.test",
+            job_type="rnaseq",
+            metadata={"project": "project-1", "sample": "sample-1"},
+            inputs={"fastq_1": "/data/reads.fastq.gz"},
+        )
+        self.assertEqual(
+            request.call_args.kwargs["json"],
+            {
+                "job_type": "rnaseq",
+                "metadata": {"project": "project-1", "sample": "sample-1"},
+                "inputs": {"fastq_1": "/data/reads.fastq.gz"},
+            },
+        )
+
+    @patch("ahab.job.requests.request")
+    def test_submit_job_accepts_json_file(self, request):
+        request.return_value = self.response
+        body = {
+            "job_type": "rnaseq",
+            "metadata": {"sample": "sample-1"},
+            "inputs": {"fastq_1": "/data/reads.fastq.gz"},
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "job.json"
+            path.write_text(json.dumps(body), encoding="utf-8")
+            submit_job(
+                api_base_url="https://example.test",
+                json_file=path,
+            )
+
+        self.assertEqual(request.call_args.kwargs["json"], body)
+
+    def test_job_submission_modes_cannot_be_combined(self):
+        with self.assertRaisesRegex(ValueError, "only one"):
+            build_job_body(
+                body={"job_type": "rnaseq", "metadata": {}, "inputs": {}},
+                job_type="rnaseq",
+            )
 
     @patch("ahab.job.requests.request")
     def test_job_template_functions_match_endpoint_contract(self, request):

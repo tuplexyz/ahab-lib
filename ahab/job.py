@@ -1,5 +1,6 @@
 """Client functions for the ahab job and job-template APIs."""
 
+import json
 import os
 from urllib.parse import urlsplit, urlunsplit
 
@@ -62,11 +63,97 @@ def _request(method, route, api_base_url, api_key, params=None, body=None):
     return payload
 
 
-def submit_job(body=None, api_base_url="", api_key=""):
-    """Create a job using its job_type, metadata, and inputs."""
-    return _request(
-        "POST", "job", api_base_url, api_key, body={} if body is None else body
+def _validate_job_body(body):
+    if not isinstance(body, dict):
+        raise ValueError("Job body must be a JSON object.")
+
+    missing_fields = [
+        field for field in ("job_type", "metadata", "inputs") if field not in body
+    ]
+    if missing_fields:
+        raise ValueError(
+            "Job body is missing required field(s): {}".format(missing_fields)
+        )
+    if not isinstance(body["job_type"], str) or not body["job_type"].strip():
+        raise ValueError("job_type must be a non-empty string.")
+    if not isinstance(body["metadata"], dict):
+        raise ValueError("metadata must be a dictionary.")
+    if not isinstance(body["inputs"], dict):
+        raise ValueError("inputs must be a dictionary.")
+    return body
+
+
+def _load_job_body(json_file):
+    try:
+        with open(json_file, encoding="utf-8") as file_handle:
+            body = json.load(file_handle)
+    except OSError as exc:
+        raise ValueError(
+            "Unable to read job JSON file '{}': {}".format(json_file, exc)
+        ) from exc
+    except ValueError as exc:
+        raise ValueError(
+            "Job JSON file '{}' must contain valid JSON.".format(json_file)
+        ) from exc
+    return _validate_job_body(body)
+
+
+def build_job_body(
+    body=None,
+    job_type=None,
+    metadata=None,
+    inputs=None,
+    json_file=None,
+):
+    """Build and validate a job request from one supported input mode."""
+    structured = any(
+        value is not None for value in (job_type, metadata, inputs)
     )
+    modes = sum((body is not None, json_file is not None, structured))
+    if modes == 0:
+        raise ValueError(
+            "Provide a job body, a JSON file, or job_type with metadata and inputs."
+        )
+    if modes > 1:
+        raise ValueError(
+            "Use only one job submission mode: body, JSON file, or structured fields."
+        )
+
+    if body is not None:
+        return _validate_job_body(body)
+    if json_file is not None:
+        return _load_job_body(json_file)
+    if not isinstance(job_type, str) or not job_type.strip():
+        raise ValueError("job_type is required for structured job submission.")
+    if metadata is not None and not isinstance(metadata, dict):
+        raise ValueError("metadata must be a dictionary.")
+    if inputs is not None and not isinstance(inputs, dict):
+        raise ValueError("inputs must be a dictionary.")
+    return {
+        "job_type": job_type,
+        "metadata": {} if metadata is None else metadata,
+        "inputs": {} if inputs is None else inputs,
+    }
+
+
+def submit_job(
+    body=None,
+    api_base_url="",
+    api_key="",
+    job_type=None,
+    metadata=None,
+    inputs=None,
+    json_file=None,
+):
+    """Create a job from a body, JSON file, or structured fields."""
+    job_body = build_job_body(
+        body=body,
+        job_type=job_type,
+        metadata=metadata,
+        inputs=inputs,
+        json_file=json_file,
+    )
+    return _request("POST", "job", api_base_url, api_key, body=job_body)
 
 
 def list_jobs(api_base_url="", api_key=""):

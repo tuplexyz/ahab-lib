@@ -1,6 +1,7 @@
 from ahab import job
 from ahab.job import (
     AhabApiError,
+    build_job_body,
     create_job_template,
     get_job,
     get_job_template,
@@ -13,6 +14,7 @@ from ahab.job import (
 
 __all__ = [
     "AhabApiError",
+    "build_job_body",
     "create_job_template",
     "get_job",
     "get_job_template",

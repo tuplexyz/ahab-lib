@@ -40,8 +40,22 @@ The CLI is installed with the package and reads `AHAB_API_URL` and
 and `--api-key` options can override them.
 
 ### Submit, list, claim, and update jobs
+Choose one submission mode: structured flags, an inline JSON body, or a JSON
+file.
+
 ```bash
-ahab job submit --body='{"job_type": "rnaseq", "metadata": {"project": "project_001", "sample": "sample_001"}, "inputs": {"references": "/mnt/datalake/reference/rnaseq_1", "fastq_1": "/mnt/datalake/project_001/sample_001/rnaseq/file_1.fastq.gz", "fastq_2": "/mnt/datalake/project_001/sample_001/rnaseq/file_2.fastq.gz"}}'
+ahab job submit \
+  --job-type rnaseq \
+  --metadata project=project_001 \
+  --metadata sample=sample_001 \
+  --input references=/mnt/datalake/reference/rnaseq_1 \
+  --input fastq_1=/mnt/datalake/project_001/sample_001/rnaseq/file_1.fastq.gz \
+  --input fastq_2=/mnt/datalake/project_001/sample_001/rnaseq/file_2.fastq.gz
+
+# Complete JSON can instead be provided inline or read from a file.
+ahab job submit --body='{"job_type":"rnaseq","metadata":{"sample":"sample_001"},"inputs":{"fastq_1":"/mnt/data/file_1.fastq.gz"}}'
+ahab job submit --file=job.json
+
 # List every job without claiming or changing its status
 ahab job list
 # Claim a pending job for a worker (the API changes it to STARTED)
@@ -63,22 +77,28 @@ ahab job-template update --body='{"name":"rnaseq","image":"example/worker:v2"}'
 ```python
 from ahab import list_jobs, get_job, submit_job, update_job
 
-body = {
-    "job_type": "rnaseq",
-    "metadata": {
+response = submit_job(
+    job_type="rnaseq",
+    metadata={
         "project": "project_001",
-        "sample": "sample_001"
+        "sample": "sample_001",
     },
-    "inputs": {
+    inputs={
         "references": "/mnt/datalake/reference/rnaseq_1",
         "fastq_1": "/mnt/datalake/project_001/sample_001/rnaseq/file_1.fastq.gz",
-        "fastq_2": "/mnt/datalake/project_001/sample_001/rnaseq/file_2.fastq.gz"
-    }
-}
-
-response = submit_job(body)
+        "fastq_2": "/mnt/datalake/project_001/sample_001/rnaseq/file_2.fastq.gz",
+    },
+)
 
 # {'message': 'Job created successfully.', 'id': 'fb273f3b-9665-4f9d-978c-9f6cb9f1cc19', 'job_type': 'rnaseq'}
+
+# Complete requests can instead be supplied as a dictionary or JSON file.
+response = submit_job(body={
+    "job_type": "rnaseq",
+    "metadata": {"sample": "sample_001"},
+    "inputs": {"fastq_1": "/mnt/data/file_1.fastq.gz"},
+})
+response = submit_job(json_file="job.json")
 
 # List all jobs without changing status.
 jobs = list_jobs()
